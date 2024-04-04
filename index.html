@@ -1,221 +1,184 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run "npm run dev" in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run "npm run deploy" to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
-
-export default {
-    async fetch(request, env, ctx) {
-      /**
-       * Example someHost is set up to take in a JSON request
-       * Replace url with the host you wish to send requests to
-       * @param {string} someHost the host to send the request to
-       * @param {string} url the URL to send the request to
-       */
-
-      //const oriRequestLineNo = new URL(request.url).searchParams.get('line');
-      const requestNoSearcher = new URLSearchParams(window.location.search);
-      const oriRequestLineNo = requestNoSearcher.get("line");
-      function BuildHTML(lineNoFull)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成都地铁实时列车信息系统</title>
+</head>
+<style>
+  .TextBody {
+    font-size: 1.3rem;
+    font-weight: bolder;
+    font-family: ui-rounded,system-ui !important;
+    color: white;
+  }
+  .TextTitle {
+    font-size: 4rem;
+    font-family: ui-rounded,system-ui !important;
+    font-weight: bold;
+    color: white;
+  }
+  .TextSubTitle {
+    font-size: 2rem;
+    font-family: ui-rounded,system-ui !important;
+    font-weight: bold;
+    color: white;
+  }
+  .TextHint {
+    font-size: 0.9rem;
+  }
+  .TextTitleExplain {
+    font-size: 1.5rem;
+    font-weight: bolder;
+  }
+  .BaseText {
+    font-family: system-ui;
+    color: #FFFFFF;
+  }
+  .HeroColorDodge {
+    mix-blend-mode: color-dodge;
+    color: #545454;
+  }
+  .HeroColorLighten {
+    mix-blend-mode: lighten;
+    color: #FFFFFF64;
+  }
+  .V{
+    display: flex;
+    flex-direction: column;
+  }
+  .Divider{
+    margin-bottom:10px;
+    background: #FFFFFF;
+    height: 1px;
+    opacity: 0.1
+  }
+</style>
+<script type="text/javascript">
+  async function gatherResponse(response) {
+    const { headers } = response;
+    const contentType = headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      return JSON.stringify(await response.json());
+    }
+    return response.text();
+  }
+  async function GetNetworkDetail()
+  {
+    const oriRequestLineNo = document.URL.searchParams.get('line');
+    const lineNo=oriRequestLineNo.toString().padStart(2,'0');
+    const cdHost = "https://cdmetro.cnzhiyuanhui.com/op/";
+    const networkSubURL="station-time";
+    const liveUrl = cdHost + "trains/all-locations?lineNo=";
+    const trainDetailUrl_d = cdHost + "trains/location?direction=";
+    const trainDetailUrl_l = "&lineNo=";
+    const trainDetailUrl_t = "&trainId=";
+    const networkURL = cdHost+networkSubURL;
+    const jsonInit = {
+      headers: {
+        "content-type": "application/json;charset=UTF-8",
+      },
+    };
+    const networkResponse = await fetch(networkURL, jsonInit);
+    const networkResults = await gatherResponse(networkResponse);
+    const networkDetail_RAW = JSON.parse(networkResults);
+    for(const _line of networkDetail_RAW.data) {
+      if (lineNo == _line.lineNo)
       {
-        var returnHTML = `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>成都地铁实时列车信息系统</title>
-        </head>
-        <style>
-          .TextBody {
-            font-size: 1.3rem;
-            font-weight: bolder;
-            font-family: ui-rounded,system-ui !important;
-            color: white;
-          }
-          .TextTitle {
-            font-size: 4rem;
-            font-family: ui-rounded,system-ui !important;
-            font-weight: bold;
-            color: white;
-          }
-          .TextSubTitle {
-            font-size: 2rem;
-            font-family: ui-rounded,system-ui !important;
-            font-weight: bold;
-            color: white;
-          }
-          .TextHint {
-            font-size: 0.9rem;
-          }
-          .TextTitleExplain {
-            font-size: 1.5rem;
-            font-weight: bolder;
-          }
-          .BaseText {
-            font-family: system-ui;
-            color: #FFFFFF;
-          }
-          .HeroColorDodge {
-            mix-blend-mode: color-dodge;
-            color: #545454;
-          }
-          .HeroColorLighten {
-            mix-blend-mode: lighten;
-            color: #FFFFFF64;
-          }
-          .V{
-            display: flex;
-            flex-direction: column;
-          }
-          .Divider{
-            margin-bottom:10px;
-            background: #FFFFFF;
-            height: 1px;
-            opacity: 0.1
-          }
-        </style>
-        <script type="text/javascript">
-          async function gatherResponse(response) {
-            const { headers } = response;
-            const contentType = headers.get("content-type") || "";
-            if (contentType.includes("application/json")) {
-              return JSON.stringify(await response.json());
-            }
-            return response.text();
-          }
-          async function GetNetworkDetail()
-          {
-            const lineNo="`+lineNoFull+`";
-            const cdHost = "https://cdmetro.cnzhiyuanhui.com/op/";
-            const networkSubURL="station-time";
-            const liveUrl = cdHost + "trains/all-locations?lineNo=";
-            const trainDetailUrl_d = cdHost + "trains/location?direction=";
-            const trainDetailUrl_l = "&lineNo=";
-            const trainDetailUrl_t = "&trainId=";
-            const networkURL = cdHost+networkSubURL;
-            const jsonInit = {
-              headers: {
-                "content-type": "application/json;charset=UTF-8",
-              },
-            };
-            const networkResponse = await fetch(networkURL, jsonInit);
-            const networkResults = await gatherResponse(networkResponse);
-            const networkDetail_RAW = JSON.parse(networkResults);
-            for(const _line of networkDetail_RAW.data) {
-              if (lineNo == _line.lineNo)
+        document.getElementById('mainBG').style.backgroundImage="linear-gradient("+_line.lineColor+"3d, "+_line.lineColor+"19)";
+        document.getElementById('heroNo').textContent=lineNo;
+        setInterval(async function (){
+          const liveLineResponse = await fetch(liveUrl+lineNo, jsonInit);
+          const liveLineResultsRAW = await gatherResponse(liveLineResponse);
+          const liveLineResults = JSON.parse(liveLineResultsRAW);
+          var trainsListHTML = "";
+          for(const _direction of liveLineResults.data.list){
+            for (const _subline of _line.subLine) {
+              if(_subline.direction == _direction.direction)
               {
-                document.getElementById('mainBG').style.backgroundImage="linear-gradient("+_line.lineColor+"3d, "+_line.lineColor+"19)";
-                document.getElementById('heroNo').textContent=lineNo;
-                setInterval(async function (){
-                  const liveLineResponse = await fetch(liveUrl+lineNo, jsonInit);
-                  const liveLineResultsRAW = await gatherResponse(liveLineResponse);
-                  const liveLineResults = JSON.parse(liveLineResultsRAW);
-                  var trainsListHTML = "";
-                  for(const _direction of liveLineResults.data.list){
-                    for (const _subline of _line.subLine) {
-                      if(_subline.direction == _direction.direction)
-                      {
-                        for (const _train of _direction.trainsLos) {
-                          const trainDetailResponse = await fetch(trainDetailUrl_d+_direction.direction+trainDetailUrl_l+lineNo+trainDetailUrl_t+_train.trainId, jsonInit);
-                          const trainDetailResultsRAW = await gatherResponse(trainDetailResponse);
-                          const trainDetailResults = JSON.parse(trainDetailResultsRAW);
-                          var returnHTML = \`<div Class="V">
-                <div class="Divider" style="width: 100%;"></div>
-                <div>
-                  <label class="BaseText TextSubTitle">\`+_train.trainId;
-                          if(_train.trainType == 1)
-                          {
-                            returnHTML+=\`(\`+_train.themeName+\`)</label>
-                    <label class="BaseText HeroColorDodge HeroColorLighten TextHint">主题列车</label>\`;
-                          }
-                          else if(_train.themeName == "直达列车")
-                          {
-                            returnHTML+=\`(\`+_train.themeName+\`)</label>
-                    <label class="BaseText HeroColorDodge HeroColorLighten TextHint">直达列车</label>\`;
-                          }
-                          returnHTML+=\`
-                </div>
-                <div Class="V" style="gap: 10px">
-                  <label class="BaseText HeroColorDodge HeroColorLighten TextHint">\`;
-                          if(trainDetailResults.data.status == 1)
-                          {
-                            returnHTML+="正停靠在"+trainDetailResults.data.trainStationName+","+_subline.description+"往"+trainDetailResults.data.endStationName+"方向";
-                          }
-                          else if(trainDetailResults.data.status == 2)
-                          {
-                            returnHTML+="行驶在"+trainDetailResults.data.trainStationName+"到"+trainDetailResults.data.trainNextStationName+"区间,往"+trainDetailResults.data.endStationName+"方向";
-                          }
-                          returnHTML+=\`</label>
-                  <div style="display: flex;flex-direction: row;gap: 16px">
-                    <div style="background: #FFFFFF;width: 3px;border-radius: 999px"></div>
-                  <div Class="V">
-                    <label class="BaseText TextBody">\`;
-                          if(trainDetailResults.data.status == 1)
-                          {
-                            returnHTML+="正停靠";
-                          }
-                          else if(trainDetailResults.data.status == 2)
-                          {
-                            returnHTML+="上一站";
-                          }
-                          returnHTML+=\`</label>
-                    <label class="BaseText HeroColorDodge HeroColorLighten TextHint">\`+_train.trainStationName+\`</label>
-                  </div>
-                  <div Class="V">
-                    <label class="BaseText TextBody">\`;
-                          if(trainDetailResults.data.status == 1)
-                          {
-                            returnHTML+="下一站停靠";
-                          }
-                          else if(trainDetailResults.data.status == 2)
-                          {
-                            returnHTML+=trainDetailResults.data.duration+"s后抵达";
-                          }
-                          returnHTML+=\`</label>
-                    <label class="BaseText HeroColorDodge HeroColorLighten TextHint">\`+_train.trainNextStationName+\`</label>
-                  </div>
-                  </div>
-                </div>
-              </div>
-              \`;
-                          trainsListHTML+=returnHTML;
-                        }
-                      }
-                    }
+                for (const _train of _direction.trainsLos) {
+                  const trainDetailResponse = await fetch(trainDetailUrl_d+_direction.direction+trainDetailUrl_l+lineNo+trainDetailUrl_t+_train.trainId, jsonInit);
+                  const trainDetailResultsRAW = await gatherResponse(trainDetailResponse);
+                  const trainDetailResults = JSON.parse(trainDetailResultsRAW);
+                  var returnHTML = `<div Class="V">
+        <div class="Divider" style="width: 100%;"></div>
+        <div>
+          <label class="BaseText TextSubTitle">`+_train.trainId;
+                  if(_train.trainType == 1)
+                  {
+                    returnHTML+=`(`+_train.themeName+`)</label>
+            <label class="BaseText HeroColorDodge HeroColorLighten TextHint">主题列车</label>`;
                   }
-                  document.getElementById('trainsContainer').innerHTML =trainsListHTML;
-                },5000);
+                  else if(_train.themeName == "直达列车")
+                  {
+                    returnHTML+=`(`+_train.themeName+`)</label>
+            <label class="BaseText HeroColorDodge HeroColorLighten TextHint">直达列车</label>`;
+                  }
+                  returnHTML+=`
+        </div>
+        <div Class="V" style="gap: 10px">
+          <label class="BaseText HeroColorDodge HeroColorLighten TextHint">`;
+                  if(trainDetailResults.data.status == 1)
+                  {
+                    returnHTML+="正停靠在"+trainDetailResults.data.trainStationName+","+_subline.description+"往"+trainDetailResults.data.endStationName+"方向";
+                  }
+                  else if(trainDetailResults.data.status == 2)
+                  {
+                    returnHTML+="行驶在"+trainDetailResults.data.trainStationName+"到"+trainDetailResults.data.trainNextStationName+"区间,往"+trainDetailResults.data.endStationName+"方向";
+                  }
+                  returnHTML+=`</label>
+          <div style="display: flex;flex-direction: row;gap: 16px">
+            <div style="background: #FFFFFF;width: 3px;border-radius: 999px"></div>
+          <div Class="V">
+            <label class="BaseText TextBody">`;
+                  if(trainDetailResults.data.status == 1)
+                  {
+                    returnHTML+="正停靠";
+                  }
+                  else if(trainDetailResults.data.status == 2)
+                  {
+                    returnHTML+="上一站";
+                  }
+                  returnHTML+=`</label>
+            <label class="BaseText HeroColorDodge HeroColorLighten TextHint">`+_train.trainStationName+`</label>
+          </div>
+          <div Class="V">
+            <label class="BaseText TextBody">`;
+                  if(trainDetailResults.data.status == 1)
+                  {
+                    returnHTML+="下一站停靠";
+                  }
+                  else if(trainDetailResults.data.status == 2)
+                  {
+                    returnHTML+=trainDetailResults.data.duration+"s后抵达";
+                  }
+                  returnHTML+=`</label>
+            <label class="BaseText HeroColorDodge HeroColorLighten TextHint">`+_train.trainNextStationName+`</label>
+          </div>
+          </div>
+        </div>
+      </div>
+      `;
+                  trainsListHTML+=returnHTML;
+                }
               }
             }
           }
-        </script>
-        <body onload="GetNetworkDetail()" style="background: #000000;width: auto;height: 100vh" marginheight="0px" marginwidth="0px">
-        <div id="mainBG" Class="V" style="gap: 30px; min-height: 100vh ;padding-top: 80px;padding-bottom: 80px;padding-left: 30px;background-image: linear-gradient(#A09EC93d, #A09EC919);">
-          <div Class="V">
-              <label class="HeroColorDodge HeroColorLighten BaseText TextTitleExplain">Line</label>
-            <label id="heroNo" class="TextTitle BaseText">请耐心等待</label>
-          </div>
-          <div Class="V" id="trainsContainer" style="gap: 40px">
-            <label class="HeroColorDodge HeroColorLighten BaseText TextTitleExplain">请耐心等待</label>
-          </div>
-        </div>
-        </body>
-        </html>`;
-        return returnHTML;
+          document.getElementById('trainsContainer').innerHTML =trainsListHTML;
+        },5000);
       }
-      var HTMLOutPut = "";
-      if(oriRequestLineNo != null)
-      {
-        HTMLOutPut = BuildHTML(oriRequestLineNo.padStart(2,'0'));
-      }
-      return new Response(HTMLOutPut, {
-        headers: {
-          "content-type": "text/html;charset=UTF-8",
-        },
-      });
-    },
-  };
+    }
+  }
+</script>
+<body onload="GetNetworkDetail()" style="background: #000000;width: auto;height: 100vh" marginheight="0px" marginwidth="0px">
+<div id="mainBG" Class="V" style="gap: 30px; min-height: 100vh ;padding-top: 80px;padding-bottom: 80px;padding-left: 30px;padding-right: 30px; background-image: linear-gradient(#A09EC93d, #A09EC919);">
+  <div Class="V">
+      <label class="HeroColorDodge HeroColorLighten BaseText TextTitleExplain">Line</label>
+    <label id="heroNo" class="TextTitle BaseText">请耐心等待</label>
+  </div>
+  <div Class="V" id="trainsContainer" style="gap: 40px">
+    <label class="HeroColorDodge HeroColorLighten BaseText TextTitleExplain">请耐心等待</label>
+  </div>
+</div>
+</body>
+</html>
