@@ -65,8 +65,32 @@
   }
   async function GetNetworkDetail()
   {
-    const oriRequestLineNo = new URLSearchParams(document.URL).get('line');
-    const lineNo=oriRequestLineNo.toString().padStart(2,'0');
+    var docURL = window.location.href,
+            params = [];
+
+// filter out the website origin "example.github.io" in the OP example
+    docURL = docURL.replace(window.location.origin, '');
+
+// if /#/ found then we have URL parameters
+// grabbing the parameters part of the URL
+    if (docURL.indexOf('/#/') > -1) {
+      docURL = docURL.split('/#/')[1];
+      if (docURL != '') {
+
+        // omit the last forward slash if exist
+        if (docURL[docURL.length - 1] == '/') {
+          docURL = docURL.substring(0, docURL.length - 1);
+        }
+
+        // split the URL final string o get an object with all params
+        params = docURL.split('/');
+        console.log(params);
+      }
+    } else {
+      postMessage("请在网址后加入/#/[线路编号]进行查询，例如/#/18");
+    }
+    //const oriRequestLineNo = new URLSearchParams(document.URL).get('line');
+    const lineNo=params.toString().padStart(2,'0');
     const cdHost = "https://cdmetro.cnzhiyuanhui.com/op/";
     const networkSubURL="station-time";
     const liveUrl = cdHost + "trains/all-locations?lineNo=";
