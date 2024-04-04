@@ -65,7 +65,7 @@
   }
   async function GetNetworkDetail()
   {
-    const oriRequestLineNo = document.URL.searchParams.get('line');
+    const oriRequestLineNo = new URLSearchParams(document.URL).get('line');
     const lineNo=oriRequestLineNo.toString().padStart(2,'0');
     const cdHost = "https://cdmetro.cnzhiyuanhui.com/op/";
     const networkSubURL="station-time";
